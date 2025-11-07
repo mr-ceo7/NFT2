@@ -5,11 +5,11 @@ plugins {
 }
 
 android {
-    namespace = "com.galvaniytechnologies.nft2"
+    namespace = "com.galvaniytechnologies.NTFY"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.galvaniytechnologies.nft2"
+        applicationId = "com.galvaniytechnologies.NTFY"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
