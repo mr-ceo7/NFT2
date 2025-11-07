@@ -18,41 +18,58 @@ object AlarmScheduler {
         broadcastType: String,
         triggerTime: Long
     ) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, BroadcastingService::class.java).apply {
-            putExtra(SmsBroadcaster.EXTRA_PAYLOAD, Gson().toJson(payload))
-            putExtra(SmsBroadcaster.EXTRA_HMAC, hmac)
-            putExtra("broadcast_type", broadcastType)
+        try {
+            val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val intent = Intent(context, BroadcastingService::class.java).apply {
+                putExtra(SmsBroadcaster.EXTRA_PAYLOAD, Gson().toJson(payload))
+                putExtra(SmsBroadcaster.EXTRA_HMAC, hmac)
+                putExtra("broadcast_type", broadcastType)
+            }
+
+            val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            } else {
+                PendingIntent.FLAG_UPDATE_CURRENT
+            }
+
+            val pendingIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                // Use getForegroundService so the Alarm can start a foreground service when needed
+                PendingIntent.getForegroundService(
+                    context,
+                    payload.hashCode(),
+                    intent,
+                    flags
+                )
+            } else {
+                PendingIntent.getService(
+                    context,
+                    payload.hashCode(),
+                    intent,
+                    flags
+                )
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+                )
+            } else {
+                alarmManager.setExact(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+                )
+            }
+
+            Log.d("AlarmScheduler", "Scheduled broadcast for ${payload.message} at $triggerTime")
+        } catch (e: Exception) {
+            // Catch any runtime exceptions (SecurityException, IllegalArgumentException, etc.) and log them
+            Log.e("AlarmScheduler", "Failed to schedule broadcast: ${e.message}", e)
+            // Re-throw to allow caller to handle if needed, or swallow to avoid crash at alarm scheduling time.
+            throw e
         }
-
-        val flags = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        } else {
-            PendingIntent.FLAG_UPDATE_CURRENT
-        }
-
-        val pendingIntent = PendingIntent.getService(
-            context,
-            payload.hashCode(),
-            intent,
-            flags
-        )
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                triggerTime,
-                pendingIntent
-            )
-        } else {
-            alarmManager.setExact(
-                AlarmManager.RTC_WAKEUP,
-                triggerTime,
-                pendingIntent
-            )
-        }
-
-        Log.d("AlarmScheduler", "Scheduled broadcast for ${payload.message} at $triggerTime")
     }
 
     fun cancelScheduledBroadcast(

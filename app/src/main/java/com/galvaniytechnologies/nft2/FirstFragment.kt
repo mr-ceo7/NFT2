@@ -139,29 +139,38 @@ class FirstFragment : Fragment() {
             val payloadJson = Gson().toJson(payload)
             val hmac = HmacUtil.generateHmac(payloadJson)
 
-            // Schedule via AlarmManager
-            AlarmScheduler.scheduleBroadcast(
-                requireContext(),
-                payload,
-                hmac,
-                "intent", // Default to intent-based broadcast for scheduled messages
-                triggerTime
-            )
+            // Schedule via AlarmManager (defensive: catch errors and show a toast instead of crashing)
+            try {
+                AlarmScheduler.scheduleBroadcast(
+                    requireContext(),
+                    payload,
+                    hmac,
+                    "intent", // Default to intent-based broadcast for scheduled messages
+                    triggerTime
+                )
 
-            Toast.makeText(
-                requireContext(),
-                "Message scheduled for broadcast in $scheduleTimeMinutes minutes",
-                Toast.LENGTH_LONG
-            ).show()
-            
-            // Log the scheduled broadcast
-            val viewModel = DeliveryLogViewModel(requireActivity().application)
-            viewModel.insertLog(
-                recipients = recipients,
-                message = message,
-                deliveryMethod = "scheduled_intent",
-                status = "scheduled"
-            )
+                Toast.makeText(
+                    requireContext(),
+                    "Message scheduled for broadcast in $scheduleTimeMinutes minutes",
+                    Toast.LENGTH_LONG
+                ).show()
+
+                // Log the scheduled broadcast
+                val viewModel = DeliveryLogViewModel(requireActivity().application)
+                viewModel.insertLog(
+                    recipients = recipients,
+                    message = message,
+                    deliveryMethod = "scheduled_intent",
+                    status = "scheduled"
+                )
+            } catch (e: Exception) {
+                Log.e("FirstFragment", "Failed to schedule broadcast: ${e.message}", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Failed to schedule broadcast: ${e.localizedMessage}",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
 
