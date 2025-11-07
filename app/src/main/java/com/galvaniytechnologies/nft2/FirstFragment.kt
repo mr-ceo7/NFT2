@@ -12,10 +12,14 @@ import com.galvaniytechnologies.nft2.util.HmacUtil
 import com.galvaniytechnologies.nft2.util.SmsBroadcaster
 import com.google.gson.Gson
 import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.galvaniytechnologies.nft2.service.BroadcastingService
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import com.galvaniytechnologies.nft2.databinding.FragmentFirstBinding
+import com.galvaniytechnologies.nft2.util.AlarmScheduler
+import com.galvaniytechnologies.nft2.viewmodel.DeliveryLogViewModel
 
 /**
  * A simple [Fragment] subclass as the default destination in the navigation.
@@ -38,6 +42,7 @@ class FirstFragment : Fragment() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -100,6 +105,63 @@ class FirstFragment : Fragment() {
             requireContext().startForegroundService(serviceIntent)
 
             Toast.makeText(requireContext(), "Message broadcast via HTTP.", Toast.LENGTH_LONG).show()
+        }
+
+        binding.scheduleBroadcastButton.setOnClickListener {
+            val message = binding.messageEditText.text.toString()
+            val recipients = binding.recipientsEditText.text.toString()
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+            val scheduleTimeStr = binding.scheduleTimeEditText.text.toString()
+
+            if (message.isEmpty() || recipients.isEmpty() || scheduleTimeStr.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    "Message, recipients, and schedule time cannot be empty",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val scheduleTimeMinutes = scheduleTimeStr.toLongOrNull()
+            if (scheduleTimeMinutes == null || scheduleTimeMinutes <= 0) {
+                Toast.makeText(
+                    requireContext(),
+                    "Please enter a valid schedule time in minutes",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return@setOnClickListener
+            }
+
+            val triggerTime = System.currentTimeMillis() + (scheduleTimeMinutes * 60 * 1000)
+            val payload = MessagePayload(recipients, message, triggerTime)
+            val payloadJson = Gson().toJson(payload)
+            val hmac = HmacUtil.generateHmac(payloadJson)
+
+            // Schedule via AlarmManager
+            AlarmScheduler.scheduleBroadcast(
+                requireContext(),
+                payload,
+                hmac,
+                "intent", // Default to intent-based broadcast for scheduled messages
+                triggerTime
+            )
+
+            Toast.makeText(
+                requireContext(),
+                "Message scheduled for broadcast in $scheduleTimeMinutes minutes",
+                Toast.LENGTH_LONG
+            ).show()
+            
+            // Log the scheduled broadcast
+            val viewModel = DeliveryLogViewModel(requireActivity().application)
+            viewModel.insertLog(
+                recipients = recipients,
+                message = message,
+                deliveryMethod = "scheduled_intent",
+                status = "scheduled"
+            )
         }
     }
 

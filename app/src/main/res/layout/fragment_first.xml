@@ -59,9 +59,34 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Broadcast via HTTP"
+                    android:text="Broadcast via HTTP" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/schedule_time_input_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:hint="Schedule Time (minutes from now)"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/broadcast_button" />
+        app:layout_constraintTop_toBottomOf="@id/broadcast_http_button">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/schedule_time_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="number" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/schedule_broadcast_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Schedule Broadcast"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/schedule_time_input_layout" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

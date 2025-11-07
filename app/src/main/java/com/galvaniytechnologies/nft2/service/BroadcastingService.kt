@@ -8,6 +8,7 @@ import android.content.Intent
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
+import com.galvaniytechnologies.nft2.viewmodel.DeliveryLogViewModel
 import androidx.core.app.NotificationCompat
 import com.galvaniytechnologies.nft2.R
 import com.galvaniytechnologies.nft2.data.MessagePayload
@@ -49,20 +50,41 @@ class BroadcastingService : Service() {
 
         if (payloadJson != null && hmac != null) {
             val payload = Gson().fromJson(payloadJson, MessagePayload::class.java)
+            val viewModel = DeliveryLogViewModel(application)
+            
             serviceScope.launch {
                 try {
                     when (broadcastType) {
                         "intent" -> {
                             SmsBroadcaster.broadcastMessageIntent(applicationContext, payload, hmac)
                             Log.d("BroadcastingService", "Message broadcast via Intent.")
+                            viewModel.insertLog(
+                                recipients = payload.recipients,
+                                message = payload.message,
+                                deliveryMethod = "intent",
+                                status = "sent"
+                            )
                         }
                         "http" -> {
                             SmsBroadcaster.broadcastMessageHttp(payload, hmac)
                             Log.d("BroadcastingService", "Message broadcast via HTTP.")
+                            viewModel.insertLog(
+                                recipients = payload.recipients,
+                                message = payload.message,
+                                deliveryMethod = "http",
+                                status = "sent"
+                            )
                         }
                     }
                 } catch (e: Exception) {
                     Log.e("BroadcastingService", "Broadcast failed: ${e.message}. Enqueuing retry.")
+                    viewModel.insertLog(
+                        recipients = payload.recipients,
+                        message = payload.message,
+                        deliveryMethod = broadcastType ?: "unknown",
+                        status = "failed",
+                        errorMessage = e.message
+                    )
                     val workRequest = OneTimeWorkRequestBuilder<BroadcastWorker>()
                         .setInputData(androidx.work.Data.Builder()
                             .putString(SmsBroadcaster.EXTRA_PAYLOAD, payloadJson)
