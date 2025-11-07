@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/FirstFragment"
-        android:name="NTFY.FirstFragment"
+        android:name="com.galvaniytechnologies.NTFY.FirstFragment"
         android:label="@string/first_fragment_label"
         tools:layout="@layout/fragment_first">
 
@@ -25,7 +25,7 @@
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
-        android:name="NTFY.SecondFragment"
+        android:name="com.galvaniytechnologies.NTFY.SecondFragment"
         android:label="@string/second_fragment_label"
         tools:layout="@layout/fragment_second">
 
@@ -36,7 +36,7 @@
 
     <fragment
         android:id="@+id/DebugLogsFragment"
-        android:name="NTFY.DebugLogsFragment"
+        android:name="com.galvaniytechnologies.NTFY.DebugLogsFragment"
         android:label="Debug Logs"
         tools:layout="@layout/fragment_debug_logs">
 
@@ -47,7 +47,7 @@
 
     <fragment
         android:id="@+id/HelpFragment"
-        android:name="NTFY.HelpFragment"
+        android:name="com.galvaniytechnologies.NTFY.HelpFragment"
         android:label="Help"
         tools:layout="@layout/fragment_help">
         

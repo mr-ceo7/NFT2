@@ -19,6 +19,7 @@ object SmsBroadcaster {
     const val CUSTOM_SMS_ACTION = "com.yourapp.sms.RECEIVE_CUSTOM"
     const val EXTRA_PAYLOAD = "extra_payload"
     const val EXTRA_HMAC = "extra_hmac"
+    const val EXTRA_BROADCAST_TYPE = "broadcast_type"
 
     fun broadcastMessageIntent(context: Context, payload: MessagePayload, hmac: String) {
         val intent = Intent(CUSTOM_SMS_ACTION).apply {
@@ -28,6 +29,7 @@ object SmsBroadcaster {
             // setPackage("com.yourapp.sms") // Replace with actual SMS App package name
             putExtra(EXTRA_PAYLOAD, Gson().toJson(payload))
             putExtra(EXTRA_HMAC, hmac)
+            putExtra(EXTRA_BROADCAST_TYPE, "intent")
         }
         context.sendBroadcast(intent)
     }
