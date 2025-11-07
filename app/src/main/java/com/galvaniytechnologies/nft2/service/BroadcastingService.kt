@@ -17,6 +17,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.BackoffPolicy
+import java.util.concurrent.TimeUnit
+import com.galvaniytechnologies.nft2.worker.BroadcastWorker
 
 class BroadcastingService : Service() {
 
@@ -45,15 +50,28 @@ class BroadcastingService : Service() {
         if (payloadJson != null && hmac != null) {
             val payload = Gson().fromJson(payloadJson, MessagePayload::class.java)
             serviceScope.launch {
-                when (broadcastType) {
-                    "intent" -> {
-                        SmsBroadcaster.broadcastMessageIntent(applicationContext, payload, hmac)
-                        Log.d("BroadcastingService", "Message broadcast via Intent.")
+                try {
+                    when (broadcastType) {
+                        "intent" -> {
+                            SmsBroadcaster.broadcastMessageIntent(applicationContext, payload, hmac)
+                            Log.d("BroadcastingService", "Message broadcast via Intent.")
+                        }
+                        "http" -> {
+                            SmsBroadcaster.broadcastMessageHttp(payload, hmac)
+                            Log.d("BroadcastingService", "Message broadcast via HTTP.")
+                        }
                     }
-                    "http" -> {
-                        SmsBroadcaster.broadcastMessageHttp(payload, hmac)
-                        Log.d("BroadcastingService", "Message broadcast via HTTP.")
-                    }
+                } catch (e: Exception) {
+                    Log.e("BroadcastingService", "Broadcast failed: ${e.message}. Enqueuing retry.")
+                    val workRequest = OneTimeWorkRequestBuilder<BroadcastWorker>()
+                        .setInputData(androidx.work.Data.Builder()
+                            .putString(SmsBroadcaster.EXTRA_PAYLOAD, payloadJson)
+                            .putString(SmsBroadcaster.EXTRA_HMAC, hmac)
+                            .putString("broadcast_type", broadcastType)
+                            .build())
+                        .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
+                        .build()
+                    WorkManager.getInstance(applicationContext).enqueue(workRequest)
                 }
                 stopSelf()
             }
