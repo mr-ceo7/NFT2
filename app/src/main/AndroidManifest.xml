@@ -36,6 +36,10 @@
             android:name=".service.BroadcastingService"
             android:foregroundServiceType="dataSync" />
 
+        <receiver
+            android:name=".receiver.AlarmReceiver"
+            android:exported="false" />
+
     </application>
 
 </manifest>

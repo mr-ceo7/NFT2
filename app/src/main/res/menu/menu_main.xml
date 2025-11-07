@@ -3,6 +3,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.galvaniytechnologies.nft2.MainActivity">
     <item
+        android:id="@+id/action_help"
+        android:orderInCategory="90"
+        android:title="Help"
+        android:icon="@android:drawable/ic_menu_help"
+        app:showAsAction="ifRoom" />
+
+    <item
         android:id="@+id/action_settings"
         android:orderInCategory="100"
         android:title="@string/action_settings"

@@ -18,6 +18,10 @@
         <action
             android:id="@+id/action_FirstFragment_to_DebugLogsFragment"
             app:destination="@id/DebugLogsFragment" />
+            
+        <action
+            android:id="@+id/action_FirstFragment_to_HelpFragment"
+            app:destination="@id/HelpFragment" />
     </fragment>
     <fragment
         android:id="@+id/SecondFragment"
@@ -38,6 +42,17 @@
 
         <action
             android:id="@+id/action_DebugLogsFragment_to_FirstFragment"
+            app:destination="@id/FirstFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/HelpFragment"
+        android:name="com.galvaniytechnologies.nft2.HelpFragment"
+        android:label="Help"
+        tools:layout="@layout/fragment_help">
+        
+        <action
+            android:id="@+id/action_HelpFragment_to_FirstFragment"
             app:destination="@id/FirstFragment" />
     </fragment>
 </navigation>

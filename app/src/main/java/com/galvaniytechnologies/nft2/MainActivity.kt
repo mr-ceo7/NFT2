@@ -47,9 +47,12 @@ class MainActivity : AppCompatActivity() {
         // as you specify a parent activity in AndroidManifest.xml.
         return when (item.itemId) {
             R.id.action_settings -> true
+            R.id.action_help -> {
+                findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.action_FirstFragment_to_HelpFragment)
+                true
+            }
             R.id.action_debug_logs -> {
-                findNavController(R.id.nav_host_fragment_content_main)
-                    .navigate(R.id.action_FirstFragment_to_DebugLogsFragment)
+                findNavController(R.id.nav_host_fragment_content_main).navigate(R.id.action_FirstFragment_to_DebugLogsFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
